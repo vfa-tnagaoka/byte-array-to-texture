@@ -23,16 +23,18 @@ public class Main : MonoBehaviour
 
     ImageData imageData;
 
+    Texture2D textureForRawImage;
+
     // Start is called before the first frame update
     void Start()
     {
         string path = "file://" + Application.persistentDataPath;
         Debug.Log(path);
 
-        Texture2D texture = Resources.Load("image") as Texture2D;
+        Texture2D originalTexture = Resources.Load("SamplePNGImage_5mbmb") as Texture2D;
 
-        //Texture2D texture = new Texture2D(originalTexture.width, originalTexture.height, TextureFormat.RGBA32, false);
-        //texture.SetPixels(originalTexture.GetPixels());
+        Texture2D texture = new Texture2D(originalTexture.width, originalTexture.height, TextureFormat.RGBA32, false);
+        texture.SetPixels(originalTexture.GetPixels());
 
         var format = texture.format;
         var byteArray = texture.GetRawTextureData();
@@ -52,34 +54,44 @@ public class Main : MonoBehaviour
 
     private void DrawImage(ImageData data)
     {
-        Texture2D texture = new Texture2D(data.width, data.height, data.format, false);
+        if (textureForRawImage == null)
+        {
+            textureForRawImage = new Texture2D(data.width, data.height, data.format, false);
+        }
 
-        //Color[] colors = new Color[data.width * data.height];
+        textureForRawImage.LoadRawTextureData(data.byteArray);
+        textureForRawImage.Apply();
 
-        //int index = 0;
-        //int byteIndex = 0;
+        rawImage.texture = textureForRawImage;
+    }
 
-        //for(int y = 0; y<data.height; y++)
-        //{
-        //    for(int x = 0; x<data.width; x++)
-        //    {
-        //        if(byteIndex < data.byteArray.GetLength(0) - 100)
-        //        colors[index] = new Color(data.byteArray[byteIndex++], data.byteArray[byteIndex++], data.byteArray[byteIndex++], data.byteArray[byteIndex]);
-        //        index++;
-        //    }
-        //}
+    private void DrawImageByGrid(ImageData data)
+    {
+        if (textureForRawImage == null)
+        {
+            textureForRawImage = new Texture2D(data.width, data.height, data.format, false);
+        }
 
-        //texture.SetPixels(colors);
+        Color[] colors = new Color[data.width * data.height];
 
-        texture.LoadRawTextureData(data.byteArray);
-        texture.Apply();
+        int index = 0;
+        int byteIndex = 0;
 
-        rawImage.texture = texture;
+        for(int y = 0; y<colors.Length; y++)
+        {
+            colors[index] = new Color32(data.byteArray[byteIndex], data.byteArray[byteIndex+1], data.byteArray[byteIndex+2], data.byteArray[byteIndex+3]);
+            byteIndex += 4;
+            index++;
+        }
+
+        textureForRawImage.SetPixels(colors);
+        textureForRawImage.Apply();
+        rawImage.texture = textureForRawImage;
     }
 
     private void Update()
     {
-        DrawImage(imageData);
+        DrawImageByGrid(imageData);
         frameRateText.text = frameRateCounter.GetFrameRate().ToString();
     }
 }

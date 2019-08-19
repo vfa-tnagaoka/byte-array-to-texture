@@ -22,16 +22,15 @@ public class Main : MonoBehaviour
     RawImage rawImage = default;
 
     ImageData imageData;
-
     Texture2D textureForRawImage;
+    RenderTexture renderTexture;
 
-    // Start is called before the first frame update
     void Start()
     {
         string path = "file://" + Application.persistentDataPath;
         Debug.Log(path);
 
-        Texture2D originalTexture = Resources.Load("SamplePNGImage_5mbmb") as Texture2D;
+        Texture2D originalTexture = Resources.Load("image-20mb") as Texture2D;
 
         Texture2D texture = new Texture2D(originalTexture.width, originalTexture.height, TextureFormat.RGBA32, false);
         texture.SetPixels(originalTexture.GetPixels());
@@ -47,7 +46,6 @@ public class Main : MonoBehaviour
             height = texture.height
         };
 
-        //DrawImage(data);
         imageData = data;
     }
 
@@ -63,6 +61,28 @@ public class Main : MonoBehaviour
         textureForRawImage.Apply();
 
         rawImage.texture = textureForRawImage;
+
+    }
+
+    private void DrawImageWithBlit(ImageData data)
+    {
+        if (textureForRawImage == null)
+        {
+            textureForRawImage = new Texture2D(data.width, data.height, data.format, false);
+        }
+
+        if (renderTexture == null)
+        {
+            renderTexture = new RenderTexture(data.width, data.height, 32);
+            rawImage.texture = renderTexture;
+        }
+
+        textureForRawImage.LoadRawTextureData(data.byteArray);
+        textureForRawImage.Apply();
+
+        //rawImage.texture = textureForRawImage;
+
+        Graphics.Blit(textureForRawImage, renderTexture);
     }
 
     private void DrawImageByGrid(ImageData data)
@@ -91,7 +111,7 @@ public class Main : MonoBehaviour
 
     private void Update()
     {
-        DrawImageByGrid(imageData);
+        DrawImage(imageData);
         frameRateText.text = frameRateCounter.GetFrameRate().ToString();
     }
 }

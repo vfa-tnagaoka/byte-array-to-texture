@@ -21,9 +21,27 @@ public class Main : MonoBehaviour
     [SerializeField]
     RawImage rawImage = default;
 
+    [SerializeField]
+    Toggle[] drawModeToggles;
+
+    int renderModeIndex;
+
     ImageData imageData;
     Texture2D textureForRawImage;
     RenderTexture renderTexture;
+
+
+    private void Awake()
+    {
+        for(int i = 0; i<drawModeToggles.Length; i++) 
+        {
+            int index = i;
+            Toggle toggle = drawModeToggles[index];
+            toggle.onValueChanged.AddListener(isOn => {
+                renderModeIndex = index;
+            });
+        }
+    }
 
     void Start()
     {
@@ -111,7 +129,22 @@ public class Main : MonoBehaviour
 
     private void Update()
     {
+        switch (renderModeIndex)
+        {
+            case 0:
+                DrawImage(imageData);
+                break;
+            case 1:
+                DrawImageWithBlit(imageData);
+                break;
+            case 2:
+                DrawImageByGrid(imageData);
+                break;
+            default:
+                break;
+        }
         DrawImage(imageData);
+
         frameRateText.text = frameRateCounter.GetFrameRate().ToString();
     }
 }
